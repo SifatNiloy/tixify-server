@@ -61,6 +61,34 @@ async function run() {
       res.send(result);
     });
 
+    // Save user data from social login
+    app.post("/saveUser", async (req, res) => {
+      const user = req.body;
+      try {
+        const existingUser = await usersCollection.findOne({
+          email: user.email,
+        });
+        if (existingUser) {
+          return res.send({ message: "User already exists" });
+        }
+        const result = await usersCollection.insertOne(user);
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("Error saving user:", error);
+        res.status(500).send("Server error");
+      }
+    });
+
+    app.get("/saveUser", async (req, res) => {
+      try {
+        const users = await usersCollection.find().toArray();
+        res.json(users);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        res.status(500).send("Server error");
+      }
+    });
+
     // Admin role verification
     const verifyAdmin = async (req, res, next) => {
       const email = req.decoded.email;
@@ -220,7 +248,7 @@ async function run() {
     app.post("/payments", verifyJWT, async (req, res) => {
       try {
         const payment = req.body;
-        // TODO: Integrate with a payment gateway
+        
         const result = await paymentsCollection.insertOne(payment);
         res.send(result);
       } catch (error) {
