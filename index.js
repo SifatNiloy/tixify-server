@@ -14,7 +14,9 @@ app.use(express.json());
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization) {
-    return res.status(401).send({ error: true, message: "Unauthorized access" });
+    return res
+      .status(401)
+      .send({ error: true, message: "Unauthorized access" });
   }
   const token = authorization.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
@@ -42,7 +44,9 @@ async function run() {
     // JWT token generation
     app.post("/jwt", async (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "24h" });
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "24h",
+      });
       res.send(token);
     });
 
@@ -62,7 +66,9 @@ async function run() {
       const email = req.decoded.email;
       const user = await usersCollection.findOne({ email });
       if (user?.role !== "Admin") {
-        return res.status(403).send({ error: true, message: "Forbidden access" });
+        return res
+          .status(403)
+          .send({ error: true, message: "Forbidden access" });
       }
       next();
     };
@@ -106,27 +112,29 @@ async function run() {
         const events = await eventsCollection.find().toArray();
         res.json(events);
       } catch (error) {
-        console.error('Error fetching events:', error);
-        res.status(500).send('Server error');
+        console.error("Error fetching events:", error);
+        res.status(500).send("Server error");
       }
     });
 
     // Retrieve a specific event
-    app.get('/events/:eventId', async (req, res) => {
-        const { eventId } = req.params;
-      
-        try {
-          const event = await eventsCollection.findOne({ _id: new ObjectId(eventId) });
-      
-          if (!event) {
-            return res.status(404).send('Event not found');
-          }
-      
-          res.json(event);
-        } catch (error) {
-          console.error('Error fetching event:', error);
-          res.status(500).send('Server error');
+    app.get("/events/:eventId", async (req, res) => {
+      const { eventId } = req.params;
+
+      try {
+        const event = await eventsCollection.findOne({
+          _id: new ObjectId(eventId),
+        });
+
+        if (!event) {
+          return res.status(404).send("Event not found");
         }
+
+        res.json(event);
+      } catch (error) {
+        console.error("Error fetching event:", error);
+        res.status(500).send("Server error");
+      }
     });
 
     // Create a new event (admin only)
@@ -147,62 +155,68 @@ async function run() {
       res.send(result);
     });
 
-    // Delete an event (admin only)
+    // Deleting an event (admin only)
     app.delete("/events/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
-      const result = await eventsCollection.deleteOne({ _id: new ObjectId(id) });
+      const result = await eventsCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
       res.send(result);
     });
 
-    // Retrieve bookings for a specific event
+    // Retrieving bookings for a specific event
     app.get("/bookings/event/:eventId", verifyJWT, async (req, res) => {
       try {
         const eventId = req.params.eventId;
-        const bookings = await bookingsCollection.find({ eventId: new ObjectId(eventId) }).toArray();
+        const bookings = await bookingsCollection
+          .find({ eventId: new ObjectId(eventId) })
+          .toArray();
         res.json(bookings);
       } catch (error) {
-        console.error('Error fetching bookings:', error);
-        res.status(500).send('Server error');
+        console.error("Error fetching bookings:", error);
+        res.status(500).send("Server error");
       }
     });
 
-    // Retrieve all bookings for a user
+    // Retrieving all bookings for a user
     app.get("/bookings", verifyJWT, async (req, res) => {
       try {
         const email = req.decoded.email;
         const bookings = await bookingsCollection.find({ email }).toArray();
         res.json(bookings);
       } catch (error) {
-        console.error('Error fetching bookings:', error);
-        res.status(500).send('Server error');
+        console.error("Error fetching bookings:", error);
+        res.status(500).send("Server error");
       }
     });
 
-    // Create a new booking
+    // Creating a new booking
     app.post("/bookings", verifyJWT, async (req, res) => {
       try {
         const booking = req.body;
         const result = await bookingsCollection.insertOne(booking);
         res.send(result);
       } catch (error) {
-        console.error('Error creating booking:', error);
-        res.status(500).send('Server error');
+        console.error("Error creating booking:", error);
+        res.status(500).send("Server error");
       }
     });
 
-    // Delete a booking
+    // Deleting a booking
     app.delete("/bookings/:id", verifyJWT, async (req, res) => {
       try {
         const id = req.params.id;
-        const result = await bookingsCollection.deleteOne({ _id: new ObjectId(id) });
+        const result = await bookingsCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
         res.send(result);
       } catch (error) {
-        console.error('Error deleting booking:', error);
-        res.status(500).send('Server error');
+        console.error("Error deleting booking:", error);
+        res.status(500).send("Server error");
       }
     });
 
-    // Process a payment
+    // Processing a payment
     app.post("/payments", verifyJWT, async (req, res) => {
       try {
         const payment = req.body;
@@ -210,12 +224,12 @@ async function run() {
         const result = await paymentsCollection.insertOne(payment);
         res.send(result);
       } catch (error) {
-        console.error('Error processing payment:', error);
-        res.status(500).send('Server error');
+        console.error("Error processing payment:", error);
+        res.status(500).send("Server error");
       }
     });
 
-    // Start Express server
+    // Starting Express server
     app.get("/", (req, res) => {
       res.send("Server connected successfully.");
     });
@@ -224,7 +238,7 @@ async function run() {
       console.log(`Server running on port ${port}`);
     });
   } catch (error) {
-    console.error('Error running the server:', error);
+    console.error("Error running the server:", error);
     process.exit(1);
   }
 }
